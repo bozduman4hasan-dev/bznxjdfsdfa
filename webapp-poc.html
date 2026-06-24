@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mini App PoC (#7 / #9)</title>
+<style>
+  body { font: 14px system-ui, sans-serif; margin: 16px; }
+  button { display:block; width:100%; margin:8px 0; padding:10px; font-size:14px; border:1px solid #2563eb; background:#eff6ff; color:#1d4ed8; border-radius:8px; cursor:pointer; }
+  pre { background:#f4f4f5; padding:8px; border-radius:6px; max-height:40vh; overflow:auto; white-space:pre-wrap; word-break:break-all; font-size:12px; }
+  h3 { margin:14px 0 4px; }
+</style>
+</head>
+<body>
+<h2>Mini App PoC</h2>
+<p>Bu sayfa bir Telegram Web App iframe'i olarak yüklenir ve parent'a test postMessage'ları atar.</p>
+
+<h3>#9 — web_app_open_link (protokol whitelist testi)</h3>
+<button onclick="send('web_app_open_link', {url:'data:text/html,<h1>poc9-data</h1>'})">open_link → data:text/html</button>
+<button onclick="send('web_app_open_link', {url:'https://example.com/poc9'})">open_link → https://example.com</button>
+<button onclick="send('web_app_open_link', {url:'tonkeeper-tc://poc9'})">open_link → custom scheme</button>
+
+<h3>#7 — web_app_open_tg_link (path_full doğrulama testi)</h3>
+<button onclick="send('web_app_open_tg_link', {path_full:'resolve?domain=telegram&start=poc7'})">open_tg_link → resolve?domain=...</button>
+<button onclick="send('web_app_open_tg_link', {path_full:'//evil.example.com/path'})">open_tg_link → //evil (host injection?)</button>
+<button onclick="send('web_app_open_tg_link', {path_full:'share/url?url=https://phish.example'})">open_tg_link → share/url</button>
+
+<h3>Bağlantıyı doğrula</h3>
+<button onclick="send('web_app_ready', {})">web_app_ready</button>
+<button onclick="send('web_app_request_theme', {})">web_app_request_theme</button>
+
+<h3>Log (gönderilen + parent'tan gelen)</h3>
+<pre id="log"></pre>
+
+<script>
+  const logEl = document.getElementById('log');
+  function log(line){ logEl.textContent = '['+new Date().toLocaleTimeString()+'] '+line+'\n' + logEl.textContent; }
+
+  function send(eventType, eventData){
+    const msg = JSON.stringify({ eventType, eventData });
+    // Telegram istemcisi event.source === iframe.contentWindow kontrolü yapıyor; bu sayfa O kaynak.
+    window.parent.postMessage(msg, '*');
+    log('GÖNDERİLDİ → ' + msg);
+  }
+
+  // Parent'tan (web.tekir.app istemcisi) gelen mesajları logla — tanındığımızı doğrular (theme/viewport/safe_area)
+  window.addEventListener('message', (e) => {
+    let d = e.data;
+    try { d = JSON.parse(e.data); } catch(_) {}
+    log('PARENT← ' + (typeof d === 'string' ? d : JSON.stringify(d)));
+  });
+
+  // Web app olarak hazır olduğumuzu bildir (istemci theme/viewport göndermeli)
+  send('web_app_ready', {});
+  send('iframe_ready', { reload_supported: false });
+  log('Sayfa yüklendi. origin=' + location.origin);
+</script>
+</body>
+</html>
