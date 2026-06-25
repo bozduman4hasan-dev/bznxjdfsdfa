@@ -21,7 +21,7 @@
 <button onclick="send('web_app_open_link', {url:'tonkeeper-tc://poc9'})">open_link → custom scheme</button>
 
 <h3>#7 — web_app_open_tg_link (path_full doğrulama testi)</h3>
-<button onclick="send('web_app_open_tg_link', {path_full:'resolve?domain=TekirDestekBot&start=poc7'})">open_tg_link → resolve?domain=...</button>
+<button onclick="send('web_app_open_tg_link', {path_full:'resolve?domain=https://web.tekir.app/TekirDestekBot&start=poc7'})">open_tg_link → resolve?domain=...</button>
 <button onclick="send('web_app_open_tg_link', {path_full:'//evil.example.com/path'})">open_tg_link → //evil (host injection?)</button>
 <button onclick="send('web_app_open_tg_link', {path_full:'share/url?url=https://phish.example'})">open_tg_link → share/url</button>
 
